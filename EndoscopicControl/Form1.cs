@@ -36,8 +36,12 @@ namespace EndoscopicControl
             //bm.AddStickAndPara(2, 500);
             //bm.Process();
             //MessageSend.SendMessage((MessageGenric)bm);
-            Stick stick = MessageReceive.FindStickByID(1);
-            stick.SetStickLegth((uint)500);
+            Stick stick;
+            stick = MessageReceive.FindStickByID(m_leftBend);
+            stick.SetStickLegth((uint)2000);
+            stick = MessageReceive.FindStickByID(m_rightBend);
+            stick.SetStickLegth((uint)2000);
+
         }
 
         private void trackBar1_Scroll(object sender, EventArgs e)
@@ -75,8 +79,19 @@ namespace EndoscopicControl
 
         private void button2_Click(object sender, EventArgs e)
         {
-            Stick stick = MessageReceive.FindStickByID(3);
-            stick.resetStickID(1);
+            //Stick stick = MessageReceive.FindStickByID(1);
+            //stick.resetStickID(2);
+            Stick stick = MessageReceive.FindStickByID(2);
+            stick.SetStickLegth((uint)1700);
+            Stick stick1 = MessageReceive.FindStickByID(1);
+            stick1.SetStickLegth((uint)1700);
+        }
+
+        private void trackBar2_Scroll(object sender, EventArgs e)
+        {
+            //QueryMessage mm = new QueryMessage(1, VSMDMessage.CMD_TYPE.CMD_RD_STATE, VSMDMessage.STATE_TYPE.STATE_CUR_VEL,20);
+            WriteMessage aa = new WriteMessage(1, VSMDMessage.CMD_TYPE.CMD_WR_MULTIES, VSMDMessage.STATE_TYPE.STATE_CUR_LOC, 2, 4);
+
         }
     }
 }
