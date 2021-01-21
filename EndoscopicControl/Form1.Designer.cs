@@ -44,7 +44,7 @@
             // button1
             // 
             this.button1.Location = new System.Drawing.Point(584, 149);
-            this.button1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.button1.Margin = new System.Windows.Forms.Padding(2);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(66, 42);
             this.button1.TabIndex = 0;
@@ -56,6 +56,7 @@
             // 
             this.trackBar1.Location = new System.Drawing.Point(22, 87);
             this.trackBar1.Maximum = 4002;
+            this.trackBar1.Minimum = 500;
             this.trackBar1.Name = "trackBar1";
             this.trackBar1.Size = new System.Drawing.Size(412, 45);
             this.trackBar1.SmallChange = 200;
@@ -78,7 +79,7 @@
             // button2
             // 
             this.button2.Location = new System.Drawing.Point(584, 238);
-            this.button2.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.button2.Margin = new System.Windows.Forms.Padding(2);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(66, 44);
             this.button2.TabIndex = 4;
@@ -143,7 +144,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.trackBar1);
             this.Controls.Add(this.button1);
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "Form1";
             this.Text = "内镜控制";
             this.Load += new System.EventHandler(this.Form1_Load);

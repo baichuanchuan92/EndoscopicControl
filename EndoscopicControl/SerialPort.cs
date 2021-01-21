@@ -122,7 +122,7 @@ namespace EndoscopicControl
                     port.Open();
                     isOpen = true;
                     //增加串口线程接受
-                    port.DataReceived += new SerialDataReceivedEventHandler(MessageReceive.Resolver);
+                    //port.DataReceived += new SerialDataReceivedEventHandler(MessageReceive.Resolver);
                     MessageBox.Show("链接成功", "Success");
 
                 }

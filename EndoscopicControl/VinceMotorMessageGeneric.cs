@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Collections;
 
 namespace EndoscopicControl
 {
-
-    class VSMDMessage
+    class VinceMotorMessageGeneric
     {
         readonly byte[] auch_crc_hi = {
         0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
@@ -46,6 +45,9 @@ namespace EndoscopicControl
         0x88, 0x48, 0x49, 0x89, 0x4B, 0x8B, 0x8A, 0x4A, 0x4E, 0x8E, 0x8F, 0x4F, 0x8D, 0x4D, 0x4C, 0x8C,
         0x44, 0x84, 0x85, 0x45, 0x87, 0x47, 0x46, 0x86, 0x82, 0x42, 0x43, 0x83, 0x41, 0x81, 0x80, 0x40};
 
+        //传送的字节序列
+        public List<Byte> byteList = new List<byte>();
+
         //crc检测
         public uint crc_checksum(byte[] data, int size)
         {
@@ -63,55 +65,46 @@ namespace EndoscopicControl
             return (uint)(hi << 8 | lo);
         }
 
-        public List<Byte> byteList = new List<byte>();
-        protected uint m_ID;
-        protected CMD_TYPE m_FuncCode;
-        protected STATE_TYPE m_StateCode;
-        protected uint m_StateCodeLength;
         //指令类型枚举 功能码
         public enum CMD_TYPE { CMD_RD_SET = 0x03, CMD_RD_STATE = 0x04, CMD_WR_SINGLE = 0x06, CMD_WR_MULTIES = 0x10 };
 
         //状态信息
         public enum STATE_TYPE { STATE_CUR_VEL = 0x00, STATE_CUR_LOC = 0x01, STATE_CUR_STATE = 0x04, STATE_CUR_VER = 0x06 };
 
+        public enum FOUR_SEGMENT_CODE { MOTOR_CONTROL = 0x00 , TARGET_POSITON = 0x01 , TARGET_VOLECITY = 0x03};
+        
         //状态信息
         public enum STATE_TYPE_LENGH { STATE_CUR_VEL = 0x02, STATE_CUR_LOC = 0x02, STATE_CUR_STATE = 0x02, STATE_CUR_VER = 0x0E };
 
+        public void SendMessage()
+        {
+            //发送指令串
+            try
+            {
+                SerialPortConfig.getPort().Write(byteList.ToArray(), 0, byteList.Count());
 
-        //设置消息接受的设备ID号
-        public void setDeviceID(uint ID)
-        {
-            m_ID = ID;
+            }
+            catch (Exception e)
+            {
+                int a = 0;
+            }
+
         }
 
-        public void setFuncCode(CMD_TYPE FuncCode)
-        {
-            m_FuncCode = FuncCode;
-        }
-
-        public void setStateCode(STATE_TYPE StateCode)
-        {
-            StateCode = m_StateCode;
-        }
-        public void setStateCodeLength(uint StateCodeLength)
-        {
-            m_StateCodeLength = StateCodeLength;
-        }
-        void ConstructionMessage()
+        public static void MotorAResolver(object sender, SerialDataReceivedEventArgs e)
         {
 
         }
-        public List<Byte> GetByteCammond()
-        {
-            return byteList;
-        }
 
+        public static void MotorBResolver(object sender, SerialDataReceivedEventArgs e)
+        {
+
+        }
     }
-    
     //查询电机状态或寄存器的消息
-    class QueryMessage : VSMDMessage
+    class QueryVinceMotorMessage : VinceMotorMessageGeneric
     {
-        public QueryMessage(uint ID, CMD_TYPE FuncCode, STATE_TYPE StateCode,uint StateCodeLength)
+        public QueryVinceMotorMessage(uint ID, CMD_TYPE FuncCode, STATE_TYPE StateCode, uint StateCodeLength)
         {
             byteList.Clear();
             byteList.Add((byte)ID);
@@ -121,31 +114,26 @@ namespace EndoscopicControl
             byteList.Add((Byte)((StateCodeLength >> 8) & 0xFF));
             byteList.Add((Byte)(StateCodeLength & 0xFF));
             //CRC
-            uint result =  crc_checksum(byteList.ToArray(), byteList.Count());
+            uint result = crc_checksum(byteList.ToArray(), byteList.Count());
             byteList.Add((Byte)((result >> 8) & 0xFF));
             byteList.Add((Byte)(result & 0xFF));
         }
-        
+
     }
 
-    //目前数据区域移位运算有问题
-    class WriteMessage : VSMDMessage
+    class WriteVinceMotorMessage : VinceMotorMessageGeneric
     {
-        public WriteMessage(uint ID, CMD_TYPE FuncCode, STATE_TYPE StateCode,uint StateCodeLength,uint DataLengh)
+        public WriteVinceMotorMessage(uint f_ID , FOUR_SEGMENT_CODE StateCode, UInt16 f_DataValue)
         {
-            byteList.Add((byte)ID);
-            byteList.Add((byte)FuncCode);
+            byteList.Add((byte)f_ID);
+            byteList.Add((byte)0x06);
             byteList.Add((byte)0x00);
             byteList.Add((byte)StateCode);
-            byteList.Add((Byte)((StateCodeLength >> 8) & 0xFF));
-            byteList.Add((Byte)(StateCodeLength & 0xFF));
             //数据长度和内容
-            byteList.Add((byte)DataLengh);
-            int ss = 10000;
-            for(int i = (int)DataLengh-1; i >= 0; i--)
+            for (int i = 2; i >= 0; i--)
             {
                 //位移运算有问题 在Float的模式下
-                byteList.Add((Byte)((ss >>i * 8) & 0xFF));
+                //byteList.Add((Byte)((ss >> i * 8) & 0xFF));
             }
             //CRC
             uint result = crc_checksum(byteList.ToArray(), byteList.Count());
@@ -154,4 +142,54 @@ namespace EndoscopicControl
         }
 
     }
+    //像4区写入多个数据
+    class WriteVinceMotorMessageInt32 : VinceMotorMessageGeneric
+    {
+        public WriteVinceMotorMessageInt32(uint f_ID , FOUR_SEGMENT_CODE f_FourCode,Int32 f_DataValue)
+        {
+            byteList.Add((byte)f_ID);
+            byteList.Add((byte)0x10);
+            byteList.Add((byte)0x00);
+            byteList.Add((byte)f_FourCode);
+            byteList.Add((byte)0x00);
+            byteList.Add((byte)0x02);
+            //数据长度和内容
+            byteList.Add((byte)0x04);
+            for (int i = 3; i >= 0; i--)
+            {
+                byteList.Add((Byte)((f_DataValue >> i * 8) & 0xFF));
+            }
+            //CRC
+            uint result = crc_checksum(byteList.ToArray(), byteList.Count());
+            byteList.Add((Byte)((result >> 8) & 0xFF));
+            byteList.Add((Byte)(result & 0xFF));
+        }
+
+    }
+
+    class WriteVinceMotorMessageFloat : VinceMotorMessageGeneric
+    {
+        public WriteVinceMotorMessageFloat(uint f_ID, FOUR_SEGMENT_CODE f_FourCode, float f_DataValue)
+        {
+            byteList.Add((byte)f_ID);
+            byteList.Add((byte)0x10);
+            byteList.Add((byte)0x00);
+            byteList.Add((byte)f_FourCode);
+            byteList.Add((byte)0x00);
+            byteList.Add((byte)0x02);
+            //数据长度和内容
+            byteList.Add((byte)0x04);
+            for (int i = 3; i >= 0; i--)
+            {
+                //byteList.Add((Byte)((f_DataValue >> i * 8) & 0xFF));
+            }
+            //CRC
+            uint result = crc_checksum(byteList.ToArray(), byteList.Count());
+            byteList.Add((Byte)((result >> 8) & 0xFF));
+            byteList.Add((Byte)(result & 0xFF));
+        }
+
+    }
+
+
 }
