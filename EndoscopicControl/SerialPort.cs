@@ -12,12 +12,25 @@ namespace EndoscopicControl
     {
         private static bool isOpen = false;
         private static bool isSetProperty = false;
-        private static SerialPort port;
+        private SerialPort port = null;
         public  static bool isHex = false;
+        private static SerialPortConfig m_SerialPortConfig = null;
 
-
-        public static SerialPort getPort()
+        public static SerialPortConfig getSerialPortConfig()
         {
+            if (m_SerialPortConfig == null)
+            {
+                m_SerialPortConfig = new SerialPortConfig();
+            }
+            return m_SerialPortConfig;
+        }
+
+        public  SerialPort getPort()
+        {
+            if(port == null)
+            {
+                port = new SerialPort();
+            }
             return port;
         }
 
@@ -29,7 +42,7 @@ namespace EndoscopicControl
 
         /// <summary>
         /// </summary>
-        public static void SetPortProperty(string PortName, string BaudRate,
+        public void SetPortProperty(string PortName, string BaudRate,
             string StopBit, string DataBits, string Pariti)
         {
             //输入参数：
@@ -94,7 +107,7 @@ namespace EndoscopicControl
         }
 
 
-        public static void MotorConnect()
+        public void MotorConnect()
         {
             string ComName = "Silicon Labs CP210x USB to UART Bridge";
 
@@ -148,11 +161,6 @@ namespace EndoscopicControl
                     //MessageBox.Show("关闭串口时发生错误", "Error");
                 }
             }
-        }
-
-        private void Port_DataReceived(object sender, SerialDataReceivedEventArgs e)
-        {
-            throw new NotImplementedException();
         }
     }
    

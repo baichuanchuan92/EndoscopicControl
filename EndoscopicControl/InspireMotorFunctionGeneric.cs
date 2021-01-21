@@ -12,20 +12,15 @@ namespace EndoscopicControl
         void resetID();
 
         //设置电机的脉冲数
-        void setImpulseCount(uint f_ImpulseValue);
+        void setImpulseCount(UInt16 f_ImpulseValue);
     }
 
     class InspireMotorFunction : InspireMotorFunctionGeneric
     {
-        public InspireMotorFunction()
+        uint m_ID = 0;
+        public InspireMotorFunction(uint f_ID)
         {
-            //链接电机
-            SerialPortConfig.SetPortProperty("COM3",
-                       "19200",
-                       "1",
-                       "8",
-                       "无");
-            SerialPortConfig.MotorConnect();
+            m_ID = f_ID;
         }
         public void resetID()
         {
@@ -33,9 +28,11 @@ namespace EndoscopicControl
             //MessageSend.SendMessage(new SingleControlMessage(restID, CMD_TYPE.CMD_SINGLECON, SingleControlMessage.SINGLE_PARA.PARA_BIND));
         }
 
-        public void setImpulseCount(uint f_ImpulseValue)
+        public void setImpulseCount(UInt16 f_ImpulseValue)
         {
-            //MessageSend.SendMessage(new CommandMessage(iD, CMD_TYPE.CMD_WR_DRV_LOC_STAT, CONTRAL_TAB.TARGET_POSITON, length));
+            InspireMotorMovementControlMessage l_MoveCmd = new InspireMotorMovementControlMessage(m_ID, InspireMotorMovementControlMessage.MOVE_CODE.LOC_BACK,
+                InspireMotorMovementControlMessage.CONTRAL_TAB.TARGET_POSITON, f_ImpulseValue);
+            l_MoveCmd.SendMessage();
         }
     }
 }

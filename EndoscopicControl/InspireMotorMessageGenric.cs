@@ -55,7 +55,7 @@ namespace EndoscopicControl
             //发送指令串
             try
             {
-                SerialPortConfig.getPort().Write(lTmpByteList.ToArray(), 0, lTmpByteList.Count());
+                SerialPortConfig.getSerialPortConfig().getPort().Write(lTmpByteList.ToArray(), 0, lTmpByteList.Count());
 
             }
             catch (Exception e)
@@ -206,6 +206,33 @@ namespace EndoscopicControl
             byteList.Add((Byte)(CheckSum & 0xFF));
         }
     }
+    class InspireMotorMovementControlMessage : InspireMotorMessageGenric
+    {
+        //单控参数
+        public enum MOVE_CODE { LOC_BACK = 0x21, LOC_NONBACK = 0x03};
+        public InspireMotorMovementControlMessage(uint f_stickID, MOVE_CODE CMDvalue, CONTRAL_TAB CTValue, UInt16 f_DataValue)
+        {
+            byteList.Clear();
+            //帧长度
+            uint FrameLength = (Byte)0x03;
+            byteList.Add((Byte)(FrameLength));
+            //ID号
+            byteList.Add((Byte)f_stickID);
+            //指令类型
+            byteList.Add((Byte)CMDvalue);
+            //控制表索引
+            byteList.Add((Byte)CTValue);
+            //数据 小端
+            byteList.Add((Byte)f_DataValue);
+            byteList.Add((Byte)(f_DataValue >> 8 & 0xFF));
+            //校验和
+            uint CheckSum = 0;
+            for (int i = 0; i < byteList.Count(); i++)
+            {
+                CheckSum = byteList[i] + CheckSum;
+            }
+            byteList.Add((Byte)(CheckSum & 0xFF));
+        }
+    }
 
-
- }
+}

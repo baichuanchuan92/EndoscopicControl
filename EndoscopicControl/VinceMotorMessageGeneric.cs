@@ -81,12 +81,11 @@ namespace EndoscopicControl
             //发送指令串
             try
             {
-                SerialPortConfig.getPort().Write(byteList.ToArray(), 0, byteList.Count());
+                SerialPortConfig.getSerialPortConfig().getPort().Write(byteList.ToArray(), 0, byteList.Count());
 
             }
             catch (Exception e)
             {
-                int a = 0;
             }
 
         }
@@ -125,15 +124,15 @@ namespace EndoscopicControl
     {
         public WriteVinceMotorMessage(uint f_ID , FOUR_SEGMENT_CODE StateCode, UInt16 f_DataValue)
         {
+            byteList.Clear();
             byteList.Add((byte)f_ID);
             byteList.Add((byte)0x06);
             byteList.Add((byte)0x00);
             byteList.Add((byte)StateCode);
-            //数据长度和内容
-            for (int i = 2; i >= 0; i--)
+            //整体是小端传送，内部两个字节是大端传送。
+            for (int i = 0; i < 2; i++)
             {
-                //位移运算有问题 在Float的模式下
-                //byteList.Add((Byte)((ss >> i * 8) & 0xFF));
+                byteList.Add((Byte)((f_DataValue >> i * 8) & 0xFF));
             }
             //CRC
             uint result = crc_checksum(byteList.ToArray(), byteList.Count());
@@ -147,6 +146,7 @@ namespace EndoscopicControl
     {
         public WriteVinceMotorMessageInt32(uint f_ID , FOUR_SEGMENT_CODE f_FourCode,Int32 f_DataValue)
         {
+            byteList.Clear();
             byteList.Add((byte)f_ID);
             byteList.Add((byte)0x10);
             byteList.Add((byte)0x00);
@@ -155,10 +155,11 @@ namespace EndoscopicControl
             byteList.Add((byte)0x02);
             //数据长度和内容
             byteList.Add((byte)0x04);
-            for (int i = 3; i >= 0; i--)
-            {
-                byteList.Add((Byte)((f_DataValue >> i * 8) & 0xFF));
-            }
+            //整体是小端传送，内部两个字节是大端传送。  
+            byteList.Add((Byte)((f_DataValue >> 8) & 0xFF));
+            byteList.Add((Byte)((f_DataValue >> 0) & 0xFF));
+            byteList.Add((Byte)((f_DataValue >> 24) & 0xFF));
+            byteList.Add((Byte)((f_DataValue >> 16) & 0xFF));
             //CRC
             uint result = crc_checksum(byteList.ToArray(), byteList.Count());
             byteList.Add((Byte)((result >> 8) & 0xFF));
@@ -167,6 +168,35 @@ namespace EndoscopicControl
 
     }
 
+    class WriteVinceMotorMessageFloat32 : VinceMotorMessageGeneric
+    {
+        public WriteVinceMotorMessageFloat32(uint f_ID, FOUR_SEGMENT_CODE f_FourCode, float f_DataValue)
+        {
+            byteList.Clear();
+            byteList.Add((byte)f_ID);
+            byteList.Add((byte)0x10);
+            byteList.Add((byte)0x00);
+            byteList.Add((byte)f_FourCode);
+            byteList.Add((byte)0x00);
+            byteList.Add((byte)0x02);
+            //数据长度和内容
+            byteList.Add((byte)0x04);
+            //整体是小端传送，内部两个字节是大端传送。
+            unsafe
+            {
+                byte* pdata = (byte*)&f_DataValue;
+                byteList.Add((byte)*(pdata + 1));
+                byteList.Add((byte)*(pdata + 0));
+                byteList.Add((byte)*(pdata + 3));
+                byteList.Add((byte)*(pdata + 2));
+            }
+            //CRC
+            uint result = crc_checksum(byteList.ToArray(), byteList.Count());
+            byteList.Add((Byte)((result >> 8) & 0xFF));
+            byteList.Add((Byte)(result & 0xFF));
+        }
+
+    }
     class WriteVinceMotorMessageFloat : VinceMotorMessageGeneric
     {
         public WriteVinceMotorMessageFloat(uint f_ID, FOUR_SEGMENT_CODE f_FourCode, float f_DataValue)

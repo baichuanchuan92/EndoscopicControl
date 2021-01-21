@@ -15,7 +15,7 @@ namespace EndoscopicControl
         void motorEnable();
 
         //电机速度调节
-        void setMotorVelocity();
+        void setMotorVelocity(float p_VelocityValue);
 
         //电机速度模式调节
         void setMotorMode();
@@ -27,16 +27,17 @@ namespace EndoscopicControl
     class VinceMotorFunction : VinceMotorFunctionGeneric
     {
         uint m_ID = 0;
+         
         public VinceMotorFunction(uint f_ID)
         {
             m_ID = f_ID;
-            //链接电机
-            SerialPortConfig.SetPortProperty("COM3",
+            SerialPortConfig.getSerialPortConfig().SetPortProperty("COM3",
                        "19200",
                        "1",
                        "8",
                        "无");
-            SerialPortConfig.MotorConnect();
+            SerialPortConfig.getSerialPortConfig().MotorConnect();
+            SerialPortConfig.getSerialPortConfig().getPort().DataReceived += VinceMotorMessageGeneric.MotorAResolver;
         }
         public void motorEnable()
         {
@@ -57,9 +58,11 @@ namespace EndoscopicControl
             l_MotorTargetValue.SendMessage();
         }
 
-        public void setMotorVelocity()
+        public void setMotorVelocity(float p_VelocityValue)
         {
-            throw new NotImplementedException();
+            WriteVinceMotorMessageFloat32 l_VelocityValue = new WriteVinceMotorMessageFloat32(m_ID
+                , WriteVinceMotorMessage.FOUR_SEGMENT_CODE.TARGET_VOLECITY, p_VelocityValue);
+            l_VelocityValue.SendMessage();
         }
     }
 
