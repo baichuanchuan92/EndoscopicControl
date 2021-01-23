@@ -76,19 +76,7 @@ namespace EndoscopicControl
         //状态信息
         public enum STATE_TYPE_LENGH { STATE_CUR_VEL = 0x02, STATE_CUR_LOC = 0x02, STATE_CUR_STATE = 0x02, STATE_CUR_VER = 0x0E };
 
-        public void SendMessage()
-        {
-            //发送指令串
-            try
-            {
-                SerialPortConfig.getSerialPortConfig().getPort().Write(byteList.ToArray(), 0, byteList.Count());
-
-            }
-            catch (Exception e)
-            {
-            }
-
-        }
+       
 
         public static void MotorAResolver(object sender, SerialDataReceivedEventArgs e)
         {

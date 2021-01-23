@@ -15,8 +15,8 @@ namespace EndoscopicControl
         public List<Byte> byteList = new List<byte>();
 
         //消息命令头
-        public const byte FrameHead1 = 0x55;
-        public const byte FrameHead2 = 0xAA;
+        public  byte FrameHead1 = 0x55;
+        public  byte FrameHead2 = 0xAA;
 
         //指令类型枚举
         public enum CMD_TYPE { CMD_RD = 0x01, CMD_WR_DRV_LOC_STAT= 0x21,CMD_WR_DRV_BRODACAST= 0xF2, CMD_WR_CONTRAL_TAB = 0x02 ,CMD_SINGLECON = 0x04};
@@ -43,27 +43,7 @@ namespace EndoscopicControl
             return 0;
         }
 
-        //消息发送
-        //消息主体，消息分类
-        //转换指令为原始字节串，之后合并发送指令头，之后发送
-        public void SendMessage()
-        {
-            List<Byte> lTmpByteList = new List<byte>();
-            lTmpByteList.Add(FrameHead1);
-            lTmpByteList.Add(FrameHead2);
-            lTmpByteList.AddRange(byteList);
-            //发送指令串
-            try
-            {
-                SerialPortConfig.getSerialPortConfig().getPort().Write(lTmpByteList.ToArray(), 0, lTmpByteList.Count());
-
-            }
-            catch (Exception e)
-            {
-                int a = 0;
-            }
-
-        }
+        
 
 
         public static void MotorAResolver(object sender, SerialDataReceivedEventArgs e)
@@ -214,7 +194,7 @@ namespace EndoscopicControl
         {
             byteList.Clear();
             //帧长度
-            uint FrameLength = (Byte)0x03;
+            uint FrameLength = (Byte)0x04;
             byteList.Add((Byte)(FrameLength));
             //ID号
             byteList.Add((Byte)f_stickID);

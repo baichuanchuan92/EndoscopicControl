@@ -27,18 +27,13 @@ namespace EndoscopicControl
 
         public  SerialPort getPort()
         {
-            if(port == null)
-            {
-                port = new SerialPort();
-            }
             return port;
         }
 
         /// <summary>
         /// 输入参数：
         /// 串口号、波特率、停止位、数据位、奇偶校验位
-        /// </summary>
-        /// <returns></returns>
+
 
         /// <summary>
         /// </summary>
@@ -106,61 +101,24 @@ namespace EndoscopicControl
 
         }
 
-
-        public void MotorConnect()
+        public SerialPort MotorConnect()
         {
-            string ComName = "Silicon Labs CP210x USB to UART Bridge";
-
-            string COMStr = "COM" + SerialRecognition.GetSpecifiedSerialPortNum(ComName).ToString();
-            //MessageBox.Show(COMStr, COMStr);
-            //连接电机
-            if (isOpen == false)
-            {
-
-                if (!isSetProperty) //串口
-                {
-                    //因时的并联机器人和自带的电控板波特率不一样
-                    //自带：921600
-                    //并联机器人：115200
-                    SetPortProperty("COM3",
-                        "921600",
-                        "1",
-                        "8",
-                        "无");
-                    isSetProperty = true;
-                }
-
-                try
-                {
-                    port.Open();
-                    isOpen = true;
-                    //增加串口线程接受
-                    //port.DataReceived += new SerialDataReceivedEventHandler(MessageReceive.Resolver);
-                    MessageBox.Show("链接成功", "Success");
-
-                }
-                catch (Exception)
-                {
-                    isSetProperty = false;
-                    isOpen = false;
-                    MessageBox.Show("串口无效或已被占", "Error");
-                }
-            }
-            else
-            {
-                try
-                {
-                    port.Close();
-                    isOpen = false;
-                    isSetProperty = false;
-
-
-                }
-                catch (Exception)
-                {
-                    //MessageBox.Show("关闭串口时发生错误", "Error");
-                }
-            }
+          try
+          {
+              port.Open();
+              isOpen = true;
+              //增加串口线程接受
+              //port.DataReceived += new SerialDataReceivedEventHandler(MessageReceive.Resolver);
+              return port;
+          
+          }
+          catch (Exception)
+          {
+              isSetProperty = false;
+              isOpen = false;
+              MessageBox.Show("串口无效或已被占", "Error");
+          }
+          return null;
         }
     }
    
